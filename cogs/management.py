@@ -10,9 +10,9 @@ class Management(commands.Cog, name="Command management"):
     def __init__(self, bot):
         self.bot = bot
 
-    group = app_commands.Group(name="management", description="All management related commands", guild_ids=[getMainGuildID()])
+    management = app_commands.Group(name="management", description="All management related commands", guild_ids=[getMainGuildID()])
 
-    @group.command(name="sync", description="Syncs the commands properly for your bot.")
+    @management.command(name="sync", description="Syncs the commands properly for your bot.")
     async def sync(self, interaction: discord.Interaction):
         if not isOwner(interaction.user.id):
             await interaction.response.send_message(f"This command is not for public use!", ephemeral=True, delete_after=5)
@@ -22,7 +22,7 @@ class Management(commands.Cog, name="Command management"):
         await interaction.followup.send(f"Successfully done!")
         print(f"User [{interaction.user.id}] Synced commands at: {getTime()}")
 
-    @group.command(name="unsync", description="Will unsync all commands from the bot.")
+    @management.command(name="unsync", description="Will unsync all commands from the bot.")
     async def unsync(self, interaction: discord.Interaction):
         if not isOwner(interaction.user.id):
             await interaction.response.send_message(f"This command is not for public use!", ephemeral=True, delete_after=5)
@@ -33,7 +33,7 @@ class Management(commands.Cog, name="Command management"):
         await self.bot.tree.sync(guild=discord.Object(getMainGuildID()))
         print(f"User [{interaction.user.id}] Unsynced commands at: {getTime()}")
 
-    @group.command(name="load", description="Loads a cog")
+    @management.command(name="load", description="Loads a cog")
     @app_commands.describe(cog='Name of the cog to be loaded.')
     async def load(self, interaction: discord.Interaction, cog: str):
         if not isOwner(interaction.user.id):
@@ -48,7 +48,7 @@ class Management(commands.Cog, name="Command management"):
         await interaction.followup.send(f"Successfully loaded cog: {cog}")
         print(f"User [{interaction.user.id}] Loaded cog: [{cog}] At: {getTime()}")
 
-    @group.command(name="unload", description="Unloads a cog")
+    @management.command(name="unload", description="Unloads a cog")
     @app_commands.describe(cog='Name of the cog to be unloaded.')
     async def unload(self, interaction: discord.Interaction, cog: str):
         if not isOwner(interaction.user.id):
@@ -63,7 +63,7 @@ class Management(commands.Cog, name="Command management"):
         await interaction.followup.send(f"Successfully unloaded cog: {cog}")
         print(f"User [{interaction.user.id}] Unloaded cog: [{cog}] At: {getTime()}")
 
-    @group.command(name="reload", description="Reloads a cog")
+    @management.command(name="reload", description="Reloads a cog")
     @app_commands.describe(cog='Name of the cog to be reloaded.')
     async def reload(self, interaction: discord.Interaction, cog: str):
         if not isOwner(interaction.user.id):
@@ -78,7 +78,7 @@ class Management(commands.Cog, name="Command management"):
         await interaction.followup.send(f"Successfully reload cog: {cog}")
         print(f"User [{interaction.user.id}] Reloaded cog: [{cog}] At: {getTime()}")
 
-    @group.command(name="list_extensions", description="Lists all extensions")
+    @management.command(name="list_extensions", description="Lists all extensions")
     async def get_extensions(self, interaction: discord.Interaction):
         if not isOwner(interaction.user.id):
             await interaction.response.send_message(f"This command is not for public use!", ephemeral=True, delete_after=5)
