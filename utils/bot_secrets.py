@@ -1,7 +1,7 @@
 import os
 import json
 
-FILE_NAME = "secrets.txt"
+FILE_NAME = "secrets.json"
 
 
 def setupSecretConfig():

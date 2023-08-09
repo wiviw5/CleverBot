@@ -1,7 +1,7 @@
 import os
 import json
 
-FILE_NAME = "config.txt"
+FILE_NAME = "config.json"
 
 
 def setupGeneralConfig():
