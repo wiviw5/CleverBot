@@ -1,3 +1,6 @@
+"""
+This file is a crucial part of the bot, namely the loading & unloading of modules for the development & owner of the bot to manage it.
+"""
 import discord
 from discord import app_commands
 from discord.ext import commands

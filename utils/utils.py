@@ -24,11 +24,20 @@ def isOwner(userid):
     return False
 
 
-# This is done for how /commands support deferred responses, while buttons interactions do not.
-async def sendReply(interaction: discord.Interaction, deferred: bool, ephemeral: bool, message: str):
-    if deferred:
-        await interaction.followup.send(message, ephemeral=ephemeral)
-        return
-    else:
-        await interaction.response.send_message(message, ephemeral=ephemeral)
-        return
+# This function and two lines after returns out either a discord user, or None if it errors out, it uses deferred responses as well.
+async def fetchUserFromID(interaction: discord.Interaction, userinput: str) -> discord.User | None:
+    try:
+        discord_id = int(userinput)
+    except ValueError:
+        await interaction.followup.send(f"Invalid input for user ID.", ephemeral=True)
+        return None
+    try:
+        discord_user = await interaction.client.fetch_user(discord_id)
+    except discord.NotFound:
+        await interaction.followup.send(f"User was not found for {userinput}.", ephemeral=True)
+        return None
+    return discord_user
+
+
+def getChannelFromID(interaction: discord.Interaction, channel_id: int) -> discord.TextChannel:
+    return interaction.client.get_channel(channel_id)
