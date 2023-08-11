@@ -10,6 +10,12 @@ TODO:
 Implement downloading gifs with https://developers.google.com/tenor/guides/quickstart / https://tenor.com/gifapi/documentation so downloading gifs isn't so terrible.
 
 
+## Dependencies:
+https://www.python-httpx.org/
+https://github.com/Rapptz/discord.py
+
+(note, do this all in a "virtual environment" otherwise known as a venv.)
+
 ### Special Thanks:
 
 The official Discord.py [Docs](https://discordpy.readthedocs.io/en/latest/index.html#) and their discord server.
