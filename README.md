@@ -11,8 +11,9 @@ Implement downloading gifs with https://developers.google.com/tenor/guides/quick
 
 
 ## Dependencies:
-https://www.python-httpx.org/
-https://github.com/Rapptz/discord.py
+[HTTPX](https://www.python-httpx.org/) 
+[discord.py](https://github.com/Rapptz/discord.py)
+[feedparser](https://github.com/kurtmckee/feedparser)
 
 (note, do this all in a "virtual environment" otherwise known as a venv.)
 
@@ -23,5 +24,7 @@ The official Discord.py [Docs](https://discordpy.readthedocs.io/en/latest/index.
 A very helpful [Gist](https://gist.github.com/AbstractUmbra/a9c188797ae194e592efe05fa129c57f) made by the user [AbstractUmbra](https://github.com/AbstractUmbra), also found [here](https://about.abstractumbra.dev/discord.py/2023/01/29/sync-command-example.html)
 
 The python docs for help on [JSON](https://docs.python.org/3/library/json.html)
+
+[Feedparser](https://github.com/kurtmckee/feedparser) for the RSS feed help
 
 A very helpful [example bot](https://github.com/kkrypt0nn/Python-Discord-Bot-Template), for viewing the basic file structure here to make sense of it all.
