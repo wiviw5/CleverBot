@@ -15,6 +15,7 @@ import os
 import time
 
 import discord
+from discord.ext import commands
 import feedparser
 
 from utils.utils import formatTimestamp
@@ -23,16 +24,27 @@ from utils.utils import formatTimestamp
 sleep_time = 2.5
 
 
-async def updateAllFeeds(interaction: discord.Interaction):
+async def updateAllFeedsInteractions(interaction: discord.Interaction):
     jsondata = getJsonDataFromFile()
     await interaction.followup.send(f"Updating all posts for {len(jsondata.keys())} RSS feeds.", ephemeral=True)
     for key in jsondata:
-        jsondata = await updateFeed(interaction=interaction, json_data=jsondata, feed_name=key)
+        jsondata, output = await updateFeed(client=interaction.client, json_data=jsondata, feed_name=key)
+        await interaction.followup.send(output + f"\n{formatTimestamp(int(time.time()), flag='F')}", ephemeral=True)
     updateJsonDataFile(jsondata)
     await interaction.followup.send(f"Finished updating all posts.", ephemeral=True)
 
 
-async def updateFeed(interaction: discord.Interaction, json_data: dict, feed_name) -> dict:
+async def updateAllFeedsAutoUpdate(bot: discord.ext.commands.Bot):
+    jsondata = getJsonDataFromFile()
+    print(f"Updating all posts for {len(jsondata.keys())} RSS feeds.")
+    for key in jsondata:
+        jsondata, output = await updateFeed(client=bot, json_data=jsondata, feed_name=key)
+        print(output)
+    updateJsonDataFile(jsondata)
+    print(f"Finished updating all posts.")
+
+
+async def updateFeed(client: discord.Client, json_data: dict, feed_name) -> [dict, str]:
     # This updates the last date it was checked for posts.
     json_data = updateLastUpdate(json_data=json_data, feed_name=feed_name)
     # Gets the newest feed data.
@@ -41,8 +53,8 @@ async def updateFeed(interaction: discord.Interaction, json_data: dict, feed_nam
     last_known_post = getLastPost(json_data=json_data, feed_name=feed_name)
     # First, we check the first post, see if it is the last known post, if it is, then we report that and end this.
     if last_known_post == feed_data['entries'][0]['title']:
-        await interaction.followup.send(f"Checked: {len(feed_data['entries'])}\nNo new posts found for: `{feed_name}`\n{formatTimestamp(int(time.time()), flag='F')}", ephemeral=True)
-        return json_data
+        outputData = f"Checked: {len(feed_data['entries'])} entries.\nNo new posts found for: `{feed_name}`"
+        return [json_data, outputData]
     # We update the last known post here, so when we return json data later, it is up-to-date with the latest post.
     json_data = updateLastPost(json_data=json_data, feed_name=feed_name, new_post=feed_data['entries'][0]['title'])
     # Gets the ID of the channel it should be sent in.
@@ -52,18 +64,18 @@ async def updateFeed(interaction: discord.Interaction, json_data: dict, feed_nam
     # Gets the profile URL for later use.
     icon_url = getIconURL(json_data=json_data, feed_name=feed_name)
     # Prepares the channel for sending the posts.
-    channel = interaction.guild.get_channel(channel_id)
+    channel = client.get_channel(channel_id)
     # Next, we go through all posts, if we don't have any known posts in the list, we post them all.
     list_of_titles = []
     for post in feed_data['entries']:
         list_of_titles.append(post['title'])
     if last_known_post not in list_of_titles:
-        await interaction.followup.send(f"Checked: {len(feed_data['entries'])}\nLast known post not found, sending all for: `{feed_name}`\n{formatTimestamp(int(time.time()), flag='F')}", ephemeral=True)
         feed_data['entries'].reverse()
         for feed in feed_data['entries']:
             time.sleep(sleep_time)
             await sendPost(channel=channel, post_title=feed['title'], post_url=feed['link'], home_page=home_page, feed_name=feed_name, icon_url=icon_url)
-        return json_data
+        outputData = f"Checked: {len(feed_data['entries'])} entries.\nLast known post not found, sent all for: `{feed_name}`"
+        return [json_data, outputData]
 
     # Now that we know that the post must exist in this list, we check this list
     found_post = False
@@ -76,9 +88,9 @@ async def updateFeed(interaction: discord.Interaction, json_data: dict, feed_nam
             await sendPost(channel=channel, post_title=feed['title'], post_url=feed['link'], home_page=home_page, feed_name=feed_name, icon_url=icon_url)
         # Checking for the post to match, once we've found it, we mark it as true, and continue on.
         if feed['title'] == last_known_post:
-            await interaction.followup.send(f"Checked: {len(feed_data['entries'])}\nFound latest post, posting all new posts for: `{feed_name}`\n{formatTimestamp(int(time.time()), flag='F')}", ephemeral=True)
             found_post = True
-    return json_data
+    outputData = f"Checked: {len(feed_data['entries'])} entries.\nFound latest post, posted all new posts for: `{feed_name}`"
+    return [json_data, outputData]
 
 
 def updateLastUpdate(json_data: dict, feed_name: str) -> dict:

@@ -18,7 +18,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands, tasks
 
-from modules.rss_feeds.rss_feed_reader_utils import updateAllFeeds
+from modules.rss_feeds.rss_feed_reader_utils import updateAllFeedsInteractions, updateAllFeedsAutoUpdate
 from utils.bot_config import getMainGuildID
 from utils.utils import getTime
 
@@ -43,11 +43,12 @@ class RSS_Feeds(commands.Cog, name="RSS Feed Commands"):
     @rss_feeds.command(name="update-all", description="Updates all feeds")
     async def updateallfeeds(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
-        await updateAllFeeds(interaction=interaction)
+        await updateAllFeedsInteractions(interaction=interaction)
 
     @tasks.loop(time=times)
     async def fetchRSSFeeds(self):
         print(f"[{getTime()}] Fetching all feeds.")
+        await updateAllFeedsAutoUpdate(self.bot)
 
 
 async def setup(bot: discord.ext.commands.Bot):
