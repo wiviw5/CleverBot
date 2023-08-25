@@ -10,9 +10,9 @@ If you do not want the rss feeds module, a future release will have a toggle wit
 
 This relies on the RSS feed having unique titles to find out what posts are older.
 """
+import json
 import os
 import time
-import json
 
 import discord
 import feedparser
@@ -51,6 +51,8 @@ async def updateFeed(interaction: discord.Interaction, json_data: dict, feed_nam
     home_page = getHomePageURL(json_data=json_data, feed_name=feed_name)
     # Gets the profile URL for later use.
     icon_url = getIconURL(json_data=json_data, feed_name=feed_name)
+    # Prepares the channel for sending the posts.
+    channel = interaction.guild.get_channel(channel_id)
     # Next, we go through all posts, if we don't have any known posts in the list, we post them all.
     list_of_titles = []
     for post in feed_data['entries']:
@@ -60,7 +62,7 @@ async def updateFeed(interaction: discord.Interaction, json_data: dict, feed_nam
         feed_data['entries'].reverse()
         for feed in feed_data['entries']:
             time.sleep(sleep_time)
-            await sendPost(interaction=interaction, post_title=feed['title'], post_url=feed['link'], channel_id=channel_id, home_page=home_page, feed_name=feed_name, icon_url=icon_url)
+            await sendPost(channel=channel, post_title=feed['title'], post_url=feed['link'], home_page=home_page, feed_name=feed_name, icon_url=icon_url)
         return json_data
 
     # Now that we know that the post must exist in this list, we check this list
@@ -71,7 +73,7 @@ async def updateFeed(interaction: discord.Interaction, json_data: dict, feed_nam
         # While we've not found the post yet, remove it from the entries, otherwise, we will "post it"
         if found_post:
             time.sleep(sleep_time)
-            await sendPost(interaction=interaction, post_title=feed['title'], post_url=feed['link'], channel_id=channel_id, home_page=home_page, feed_name=feed_name, icon_url=icon_url)
+            await sendPost(channel=channel, post_title=feed['title'], post_url=feed['link'], home_page=home_page, feed_name=feed_name, icon_url=icon_url)
         # Checking for the post to match, once we've found it, we mark it as true, and continue on.
         if feed['title'] == last_known_post:
             await interaction.followup.send(f"Checked: {len(feed_data['entries'])}\nFound latest post, posting all new posts for: `{feed_name}`\n{formatTimestamp(int(time.time()), flag='F')}", ephemeral=True)
@@ -118,8 +120,7 @@ def getFromURL(json_data: dict, feed_name: str) -> feedparser.FeedParserDict:
     return output
 
 
-async def sendPost(interaction: discord.Interaction, post_title: str, post_url: str, channel_id: int, home_page: str, feed_name: str, icon_url: str):
-    channel = interaction.guild.get_channel(channel_id)
+async def sendPost(channel: discord.TextChannel, post_title: str, post_url: str, home_page: str, feed_name: str, icon_url: str):
     embed = discord.Embed(color=6230803, description=f"New upload!\n[{post_title}]({post_url})")
     embed.set_author(name=feed_name, url=home_page, icon_url=icon_url)
     embed.set_footer(text=home_page)
