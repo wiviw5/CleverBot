@@ -24,8 +24,8 @@ from utils.utils import getTime
 
 # Changeable by the bot owner. It's by  the bot owner's timezone, so it runs once per hour of the owners timezone except for early hours.
 # It starts at 8 AM, ends exactly on the next day, set with the below two lines. (appending 0 for the "first" hour of the day, 8 for 8 a.m., and 24 for all times between 0800 and 2300.)
-hours = list(range(8, 24))
-hours.append(0)
+# hours = list(range(8, 24))
+hours = [0, 8, 16, 23]
 # Below gets the dates ready for the bot to do its magic.
 timezone = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
 times = []
@@ -37,6 +37,10 @@ times.sort()
 class RSS_Feeds(commands.Cog, name="RSS Feed Commands"):
     def __init__(self, bot: discord.ext.commands.Bot):
         self.bot = bot
+        self.fetchRSSFeeds.start()
+
+    def cog_unload(self):
+        self.fetchRSSFeeds.cancel()
 
     rss_feeds = app_commands.Group(name="rss", description="All RSS feed related commands", guild_ids=[getMainGuildID()])
 
@@ -52,5 +56,4 @@ class RSS_Feeds(commands.Cog, name="RSS Feed Commands"):
 
 
 async def setup(bot: discord.ext.commands.Bot):
-    RSS_Feeds.fetchRSSFeeds.start()
     await bot.add_cog(RSS_Feeds(bot))

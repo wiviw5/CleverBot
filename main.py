@@ -13,6 +13,7 @@ bot = Bot(intents=intents, command_prefix="!")
 
 
 async def load_cogs():
+    print(f"Loading Cogs...")
     for file in os.listdir(f"{os.path.realpath(os.path.dirname(__file__))}/cogs"):
         if file.endswith(".py"):
             extension = file[:-3]
@@ -26,6 +27,7 @@ async def load_cogs():
 
 @bot.event
 async def on_ready():
+    await load_cogs()
     print(f"Bot connected at: {getTime()} as {bot.user} (ID: {bot.user.id})")
     commands = await bot.tree.fetch_commands(guild=discord.Object(getMainGuildID()))
     if len(commands) < 1:
@@ -38,5 +40,4 @@ async def unsync_commands():
 
 
 loadConfigs()
-asyncio.run(load_cogs())
 bot.run(getBotToken())
