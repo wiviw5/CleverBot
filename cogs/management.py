@@ -48,6 +48,9 @@ class Management(commands.Cog, name="Command management"):
         except ImportError:
             await interaction.followup.send(f"Failed to load cog: {cog}")
             return
+        except discord.ext.commands.ExtensionNotFound:
+            await interaction.followup.send(f"Failed to reload cog: {cog}\nReason: Extension not Found.")
+            return
         await interaction.followup.send(f"Successfully loaded cog: {cog}")
         print(f"User [{interaction.user.id}] Loaded cog: [{cog}] At: {getTime()}")
 
@@ -76,7 +79,10 @@ class Management(commands.Cog, name="Command management"):
         try:
             await self.bot.reload_extension(f"cogs.{cog}")
         except ImportError:
-            await interaction.followup.send(f"Failed to reload cog: {cog}")
+            await interaction.followup.send(f"Failed to reload cog: {cog}\nReason: Import Error.")
+            return
+        except discord.ext.commands.ExtensionNotLoaded:
+            await interaction.followup.send(f"Failed to reload cog: {cog}\nReason: Extension not Loaded/Not Found.")
             return
         await interaction.followup.send(f"Successfully reload cog: {cog}")
         print(f"User [{interaction.user.id}] Reloaded cog: [{cog}] At: {getTime()}")
