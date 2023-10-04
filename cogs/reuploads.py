@@ -53,10 +53,10 @@ class Reuploads(commands.Cog, name="Reuploads Commands"):
     @app_commands.describe(source='Sources which may include any text')
     async def upload(self, interaction: discord.Interaction, url: str, filename: str, channel: discord.TextChannel = None, spoiler: bool = False, source: str = None):
         await interaction.response.defer(ephemeral=True)
-        modifiedSource = f"Uploaded file: `{filename}`"
+        modifiedSource = f"`{filename}`"
         if source is not None:
-            modifiedSource = f"{modifiedSource}\n`{source}`"
-        await sendFile(interaction=interaction, url=url, filename=filename, spoiler=spoiler, channel=channel, source=modifiedSource)
+            modifiedSource = f"{modifiedSource} | {source}"
+        await sendFile(interaction=interaction, url=url, filename=filename, spoiler=spoiler, channel=channel, source=modifiedSource, sourcetype="Upload")
 
     @reuploads.command(name='directupload', description='Directly replies & uploads Files')
     @app_commands.describe(filename='Name of the File')
@@ -65,10 +65,10 @@ class Reuploads(commands.Cog, name="Reuploads Commands"):
     @app_commands.describe(source='Sources which may include any text')
     async def upload(self, interaction: discord.Interaction, url: str, filename: str, spoiler: bool = False, source: str = None):
         await interaction.response.defer(ephemeral=True)
-        modifiedSource = f"Uploaded file: `{filename}`"
+        modifiedSource = f"`{filename}`"
         if source is not None:
-            modifiedSource = f"{modifiedSource}\n`{source}`"
-        await sendFile(interaction=interaction, url=url, filename=filename, spoiler=spoiler, source=modifiedSource, channel=interaction.channel)
+            modifiedSource = f"{modifiedSource} | {source}"
+        await sendFile(interaction=interaction, url=url, filename=filename, spoiler=spoiler, source=modifiedSource, channel=interaction.channel, sourcetype="Upload")
 
     @reuploads.command(name='avatar', description='Uploads Avatars')
     @app_commands.describe(channel='The channel to Send it in.')

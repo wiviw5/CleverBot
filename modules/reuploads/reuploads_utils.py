@@ -18,7 +18,7 @@ from utils.files_utils import getHashOfBytes, getFileSize, downloadURL, checkFil
 from utils.utils import getChannelFromID
 
 
-async def sendFile(interaction: discord.Interaction, url, filename, channel, spoiler, source):
+async def sendFile(interaction: discord.Interaction, url, filename, channel, spoiler, source, sourcetype: str):
     returnedBytes = await downloadURL(url)
     if not checkFileSize(returnedBytes):
         await interaction.followup.send(f"### Failed Uploading file due to size limits by discord, details of upload are below.\n{source}\nOrigin URL: `{url}`\nHash: `{getHashOfBytes(returnedBytes.content)}` Size: `{getFileSize(returnedBytes.content)}", ephemeral=True)
@@ -28,7 +28,7 @@ async def sendFile(interaction: discord.Interaction, url, filename, channel, spo
     if channel is None:
         channel = getDefaultChannel(interaction=interaction)
     await channel.send(f"{source}\nOrigin URL: `{url}`\nHash: `{getHashOfBytes(returnedBytes.content)}` Size: `{getFileSize(returnedBytes.content)}`", file=fileToSend)
-    await interaction.followup.send(f"Successfully sent file!", ephemeral=True)
+    await interaction.followup.send(f"Successfully sent file!\n\nType: `{sourcetype}`\nSource: {source}", ephemeral=True)
 
 
 async def sendAvatar(interaction: discord.Interaction, userID, channel, spoiler, source):
@@ -37,7 +37,7 @@ async def sendAvatar(interaction: discord.Interaction, userID, channel, spoiler,
     modifiedSource = getFormattedUsernames(discUser)
     if source is not None:
         modifiedSource = f"{modifiedSource}\n`{source}`"
-    await sendFile(interaction=interaction, url=userAvatarURL, filename=discUser.id, channel=channel, spoiler=spoiler, source=modifiedSource)
+    await sendFile(interaction=interaction, url=userAvatarURL, filename=discUser.id, channel=channel, spoiler=spoiler, source=modifiedSource, sourcetype="Avatar")
 
 
 async def sendBanner(interaction: discord.Interaction, userID, channel, spoiler, source):
@@ -46,7 +46,7 @@ async def sendBanner(interaction: discord.Interaction, userID, channel, spoiler,
     modifiedSource = getFormattedUsernames(discUser)
     if source is not None:
         modifiedSource = f"{modifiedSource}\n`{source}`"
-    await sendFile(interaction=interaction, url=userBannerURL, filename=discUser.id, channel=channel, spoiler=spoiler, source=modifiedSource)
+    await sendFile(interaction=interaction, url=userBannerURL, filename=discUser.id, channel=channel, spoiler=spoiler, source=modifiedSource, sourcetype="Banner")
 
 
 def getFormattedUsernames(discord_user: discord.User) -> str:
