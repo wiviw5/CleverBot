@@ -14,6 +14,7 @@ Implement downloading gifs with https://developers.google.com/tenor/guides/quick
 [HTTPX](https://www.python-httpx.org/) 
 [discord.py](https://github.com/Rapptz/discord.py)
 [feedparser](https://github.com/kurtmckee/feedparser)
+[py-mine](https://github.com/py-mine/mcstatus)
 
 (note, do this all in a "virtual environment" otherwise known as a venv.)
 
@@ -26,5 +27,7 @@ A very helpful [Gist](https://gist.github.com/AbstractUmbra/a9c188797ae194e592ef
 The python docs for help on [JSON](https://docs.python.org/3/library/json.html)
 
 [Feedparser](https://github.com/kurtmckee/feedparser) for the RSS feed help
+
+[py-mine](https://github.com/py-mine/mcstatus) for the amazing MC status software.
 
 A very helpful [example bot](https://github.com/kkrypt0nn/Python-Discord-Bot-Template), for viewing the basic file structure here to make sense of it all.
