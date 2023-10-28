@@ -56,8 +56,10 @@ class MCServer(commands.Cog, name="Minecraft Server Commands"):
             embed.set_thumbnail(url=f"attachment://{filename}")
             await interaction.followup.send(embed=embed, file=file)
         else:
-            # TODO Implement a static file reading for a "default server" icon. Custom design so not to infringe on copyright.
-            await interaction.followup.send(embed=embed)
+            filename = "server-icon.png"
+            file = discord.File(filename)
+            embed.set_thumbnail(url=f"attachment://{filename}")
+            await interaction.followup.send(embed=embed, file=file)
 
 
 async def setup(bot):
