@@ -95,6 +95,8 @@ async def setup(bot):
     await bot.add_cog(MCServer(bot))
 
 
+# Regex help: https://regex-generator.olafneumann.org/
+# Regex help: https://regex101.com/?regex=minecraftserver%3Aaddress%3A%5C%7B%5B%5E%7D%5D*%5C%7D%3Aplayer%3A%5C%7B%5B%5E%7D%5D*%5C%7D&flags=gi&delimiter=/
 class MCButtonView(discord.ui.DynamicItem[discord.ui.Button], template=r'minecraftserver:info:\{(?P<info>[^}]*)\}'):
     def __init__(self, address: str, port: int, players: bool) -> None:
         if players:
@@ -172,8 +174,6 @@ async def getServerStatus(address: str, port: int, retry: int) -> [JavaStatusRes
             return getErrorType(2)
         time.sleep(5)
         return await getServerStatus(address=address, port=port, retry=2)
-
-
 
     return status
 
