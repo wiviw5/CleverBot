@@ -17,7 +17,7 @@ from discord.ext import commands
 from modules.reuploads.reuploads_config import setupReuploadsConfig
 from utils.bot_config import getMainGuildID
 from utils.files_utils import getHashOfBytes, downloadURL
-from modules.reuploads.reuploads_utils import getFormattedUsernames, adjustPictureSizeDiscord, sendAvatar, sendBanner, sendFile
+from modules.reuploads.reuploads_utils import getFormattedUsernames, adjustPictureSizeDiscord, sendAvatar, sendBanner, sendFile, formatSources
 from utils.utils import fetchUserFromID
 
 
@@ -51,11 +51,12 @@ class Reuploads(commands.Cog, name="Reuploads Commands"):
     @app_commands.describe(url='Url of the Image')
     @app_commands.describe(spoiler='Whether or not the image should be hidden')
     @app_commands.describe(source='Sources which may include any text')
-    async def upload(self, interaction: discord.Interaction, url: str, filename: str, channel: discord.TextChannel = None, spoiler: bool = False, source: str = None):
+    @app_commands.describe(user_source='ID of a User, includes a mention, ID, username, and global name.')
+    async def upload(self, interaction: discord.Interaction, url: str, filename: str = None, channel: discord.TextChannel = None, spoiler: bool = False, source: str = None, user_source: str = None):
         await interaction.response.defer(ephemeral=True)
-        modifiedSource = f"`{filename}`"
-        if source is not None:
-            modifiedSource = f"{modifiedSource} | {source}"
+        modifiedSource = await formatSources(interaction=interaction, filename=filename, source=source, userid=user_source)
+        if modifiedSource is None:
+            return
         await sendFile(interaction=interaction, url=url, filename=filename, spoiler=spoiler, channel=channel, source=modifiedSource, sourcetype="Upload")
 
     @reuploads.command(name='directupload', description='Directly replies & uploads Files')
@@ -63,11 +64,11 @@ class Reuploads(commands.Cog, name="Reuploads Commands"):
     @app_commands.describe(url='Url of the Image')
     @app_commands.describe(spoiler='Whether or not the image should be hidden')
     @app_commands.describe(source='Sources which may include any text')
-    async def upload(self, interaction: discord.Interaction, url: str, filename: str, spoiler: bool = False, source: str = None):
+    async def upload(self, interaction: discord.Interaction, url: str, filename: str = None, spoiler: bool = False, source: str = None, user_source: str = None):
         await interaction.response.defer(ephemeral=True)
-        modifiedSource = f"`{filename}`"
-        if source is not None:
-            modifiedSource = f"{modifiedSource} | {source}"
+        modifiedSource = await formatSources(interaction=interaction, filename=filename, source=source, userid=user_source)
+        if modifiedSource is None:
+            return
         await sendFile(interaction=interaction, url=url, filename=filename, spoiler=spoiler, source=modifiedSource, channel=interaction.channel, sourcetype="Upload")
 
     @reuploads.command(name='avatar', description='Uploads Avatars')

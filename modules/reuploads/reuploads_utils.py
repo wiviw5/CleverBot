@@ -15,7 +15,7 @@ import discord
 
 from modules.reuploads.reuploads_config import getDefaultReuploadChannel
 from utils.files_utils import getHashOfBytes, getFileSize, downloadURL, checkFileSize, getFileExtensionType
-from utils.utils import getChannelFromID
+from utils.utils import getChannelFromID, fetchUserFromID
 
 
 async def sendFile(interaction: discord.Interaction, url, filename, channel, spoiler, source, sourcetype: str):
@@ -23,12 +23,19 @@ async def sendFile(interaction: discord.Interaction, url, filename, channel, spo
     if not checkFileSize(returnedBytes):
         await interaction.followup.send(f"### Failed Uploading file due to size limits by discord, details of upload are below.\n{source}\nOrigin URL: `{url}`\nHash: `{getHashOfBytes(returnedBytes.content)}` Size: `{getFileSize(returnedBytes.content)}", ephemeral=True)
         return
+    hashOfBytes = getHashOfBytes(returnedBytes.content)
+    if filename is None:
+        filename = hashOfBytes
     finalFileName = getFileName(filename=filename, RB=returnedBytes, spoiler=spoiler)
     fileToSend = discord.File(io.BytesIO(returnedBytes.content), filename=finalFileName)
     if channel is None:
         channel = getDefaultChannel(interaction=interaction)
-    await channel.send(f"{source}\nOrigin URL: `{url}`\nHash: `{getHashOfBytes(returnedBytes.content)}` Size: `{getFileSize(returnedBytes.content)}`", file=fileToSend)
-    await interaction.followup.send(f"Successfully sent file!\n\nType: `{sourcetype}`\nSource: {source}", ephemeral=True)
+    if source != "":
+        await channel.send(f"{source}\nOrigin URL: `{url}`\nHash: `{hashOfBytes}` Size: `{getFileSize(returnedBytes.content)}`", file=fileToSend)
+        await interaction.followup.send(f"Successfully sent file!\n\nType: `{sourcetype}`\nSource: {source}", ephemeral=True)
+    else:
+        await channel.send(f"Origin URL: `{url}`\nHash: `{hashOfBytes}` Size: `{getFileSize(returnedBytes.content)}`", file=fileToSend)
+        await interaction.followup.send(f"Successfully sent file!\n\nType: `{sourcetype}`", ephemeral=True)
 
 
 async def sendAvatar(interaction: discord.Interaction, userID, channel, spoiler, source):
@@ -70,6 +77,33 @@ def getFileName(filename, RB, spoiler):
         return f"SPOILER_{filename}{getFileExtensionType(RB)}"
     else:
         return f"{filename}{getFileExtensionType(RB)}"
+
+
+async def formatSources(interaction: discord.Interaction, filename: str = None, source: str = None, userid: str = None):
+    # If we have an userid, we first test for this, since it contains an early return in case of an improper user ID.
+    formattedUsernames = None
+    if userid is not None:
+        discord_user = await fetchUserFromID(interaction, userid)
+        if discord_user is None:
+            return None  # Early return, and is handled in the function that called it.
+        # We can safely get all the formatted usernames now.
+        formattedUsernames = getFormattedUsernames(discord_user)
+
+    # If we have a filename set, we set it, and continue.
+    formattedFilename = None
+    if filename is not None:
+        formattedFilename = f"`{filename}`"
+
+    formattedSource = None
+    if source is not None:
+        formattedSource = source
+
+    # We put all of them together into a list, and then remove any None.
+    formattedList = [formattedFilename, formattedUsernames, formattedSource]
+    revisedList = list(filter(lambda item: item is not None, formattedList))
+
+    # Finally we join the list together, if the list is empty, it just returns nothing, (but not none!)
+    return " | ".join(revisedList)
 
 
 def getDefaultChannel(interaction: discord.Interaction):
