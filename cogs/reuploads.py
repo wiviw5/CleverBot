@@ -64,12 +64,27 @@ class Reuploads(commands.Cog, name="Reuploads Commands"):
     @app_commands.describe(url='Url of the Image')
     @app_commands.describe(spoiler='Whether or not the image should be hidden')
     @app_commands.describe(source='Sources which may include any text')
+    @app_commands.describe(user_source='ID of a User, includes a mention, ID, username, and global name.')
     async def upload(self, interaction: discord.Interaction, url: str, filename: str = None, spoiler: bool = False, source: str = None, user_source: str = None):
         await interaction.response.defer(ephemeral=True)
         modifiedSource = await formatSources(interaction=interaction, filename=filename, source=source, userid=user_source)
         if modifiedSource is None:
             return
         await sendFile(interaction=interaction, url=url, filename=filename, spoiler=spoiler, source=modifiedSource, channel=interaction.channel, sourcetype="Upload")
+
+    @reuploads.command(name='fileupload', description='Reuploads a file directly uploaded to discord')
+    @app_commands.describe(channel='The channel to Send it in.')
+    @app_commands.describe(file='File to be uploaded.')
+    @app_commands.describe(filename='Name of the File')
+    @app_commands.describe(spoiler='Whether or not the image should be hidden')
+    @app_commands.describe(source='Sources which may include any text')
+    @app_commands.describe(user_source='ID of a User, includes a mention, ID, username, and global name.')
+    async def upload(self, interaction: discord.Interaction, file: discord.Attachment, filename: str = None, channel: discord.TextChannel = None, spoiler: bool = False, source: str = None, user_source: str = None):
+        await interaction.response.defer(ephemeral=True)
+        modifiedSource = await formatSources(interaction=interaction, filename=filename, source=source, userid=user_source)
+        if modifiedSource is None:
+            return
+        await sendFile(interaction=interaction, url=file.url, filename=filename, spoiler=spoiler, source=modifiedSource, channel=channel, sourcetype="Upload")
 
     @reuploads.command(name='avatar', description='Uploads Avatars')
     @app_commands.describe(channel='The channel to Send it in.')
