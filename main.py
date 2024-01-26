@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 
 from cogs.minecraft_server import MCButtonView
+from cogs.reuploads import infoViewButtons
 from utils.bot_config import getMainGuildID
 from utils.bot_secrets import getBotToken
 from utils.utils import getTime, loadConfigs
@@ -18,6 +19,7 @@ class CleverBot(commands.Bot):
 
     async def setup_hook(self) -> None:
         self.add_dynamic_items(MCButtonView)
+        self.add_dynamic_items(infoViewButtons)
 
     async def on_ready(self):
         await load_cogs()

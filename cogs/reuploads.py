@@ -9,6 +9,7 @@ modules/reuploads/reuploads_config.json
 
 If you do not want the reuploads module, a future release will have a toggle within a config file. (otherwise just remove the files related to the module.)
 """
+import re
 
 import discord
 from discord import app_commands
@@ -39,11 +40,20 @@ class Reuploads(commands.Cog, name="Reuploads Commands"):
             return
         if discord_user.banner is None:
             userAvatarURL = discord_user.avatar.url
-            await interaction.followup.send(f"Showing Info of {getFormattedUsernames(discord_user)}\n{userAvatarURL}", ephemeral=True, view=infoAvatar(discord_user.id))
+
+            view = discord.ui.View(timeout=None)
+            view.add_item(infoViewButtons(userID=discord_user.id, buttonType="avatar"))
+            view.add_item(infoViewButtons(userID=discord_user.id, buttonType="hash"))
+            await interaction.followup.send(f"Showing Info of {getFormattedUsernames(discord_user)}\n{userAvatarURL}", ephemeral=True, view=view)
         else:
             userAvatarURL = discord_user.avatar.url
             userBannerURL = adjustPictureSizeDiscord(discord_user.banner.url, 1024)
-            await interaction.followup.send(f"Showing Info of {getFormattedUsernames(discord_user)}\n{userAvatarURL}\n{userBannerURL}", ephemeral=True, view=infoAvatarAndBanner(discord_user.id))
+
+            view = discord.ui.View(timeout=None)
+            view.add_item(infoViewButtons(userID=discord_user.id, buttonType="avatar"))
+            view.add_item(infoViewButtons(userID=discord_user.id, buttonType="banner"))
+            view.add_item(infoViewButtons(userID=discord_user.id, buttonType="hash"))
+            await interaction.followup.send(f"Showing Info of {getFormattedUsernames(discord_user)}\n{userAvatarURL}\n{userBannerURL}", ephemeral=True, view=view)
 
     @reuploads.command(name='upload', description='Upload Files')
     @app_commands.describe(channel='The channel to Send it in.')
@@ -117,46 +127,57 @@ class Reuploads(commands.Cog, name="Reuploads Commands"):
         await sendBanner(interaction=interaction, userID=userid, spoiler=spoiler, channel=channel, source=source)
 
 
-class infoAvatarAndBanner(discord.ui.View):
-    def __init__(self, userID):
-        super().__init__()
-        self.userID = userID
+class infoViewButtons(discord.ui.DynamicItem[discord.ui.Button], template=r'reuploads:info:\{(?P<info>[^}]*)\}'):
+    def __init__(self, userID: int, buttonType: str) -> None:
+        self.userID: int = userID
+        self.buttonType: str = buttonType
 
-    @discord.ui.button(label='Avatar', style=discord.ButtonStyle.primary)
-    async def avatar(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.defer(ephemeral=True)
-        await sendAvatar(interaction=interaction, userID=self.userID, channel=None, spoiler=False, source=None)
+        label = "ERROR"
+        style = discord.ButtonStyle.danger
 
-    @discord.ui.button(label='Banner', style=discord.ButtonStyle.success)
-    async def banner(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.defer(ephemeral=True)
-        await sendBanner(interaction=interaction, userID=self.userID, channel=None, spoiler=False, source=None)
+        match buttonType:
+            case "avatar":
+                label = "Avatar"
+                style = discord.ButtonStyle.primary
+            case "banner":
+                label = "Banner"
+                style = discord.ButtonStyle.success
+            case "hash":
+                label = "Hash"
+                style = discord.ButtonStyle.secondary
 
-    @discord.ui.button(label='Hash', style=discord.ButtonStyle.secondary)
-    async def hash(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.defer(ephemeral=True)
-        discUser = await interaction.client.fetch_user(int(self.userID))
-        returnedBytesAvatar = await downloadURL(discUser.avatar.url)
-        returnedBytesBanner = await downloadURL(adjustPictureSizeDiscord(discUser.banner.url, 1024))
-        await interaction.followup.send(f'Attached Hash for {self.userID}\nAvatar: `{getHashOfBytes(returnedBytesAvatar.content)}`\nBanner: `{getHashOfBytes(returnedBytesBanner.content)}`', ephemeral=True)
+        # We generate the button here.
+        super().__init__(
+            discord.ui.Button(
+                label=label,
+                style=style,
+                custom_id=f"reuploads:info:{{{userID}:{buttonType}}}"
+            )
+        )
 
+    @classmethod
+    async def from_custom_id(cls, interaction: discord.Interaction, item: discord.ui.Button, match: re.Match[str], /):
+        info = str(match['info'])
+        information = info.split(":")
+        return cls(userID=int(information[0]), buttonType=information[1])
 
-class infoAvatar(discord.ui.View):
-    def __init__(self, userID):
-        super().__init__()
-        self.userID = userID
-
-    @discord.ui.button(label='Avatar', style=discord.ButtonStyle.primary)
-    async def avatar(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.defer(ephemeral=True)
-        await sendAvatar(interaction=interaction, userID=self.userID, channel=None, spoiler=False, source=None)
-
-    @discord.ui.button(label='Hash', style=discord.ButtonStyle.secondary)
-    async def hash(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.defer(ephemeral=True)
-        discUser = await interaction.client.fetch_user(int(self.userID))
-        returnedBytes = await downloadURL(discUser.avatar.url)
-        await interaction.followup.send(f'Attached Hash for {self.userID}\nAvatar: `{getHashOfBytes(returnedBytes.content)}`', ephemeral=True)
+    async def callback(self, interaction: discord.Interaction) -> None:
+        match self.buttonType:
+            case "avatar":
+                await interaction.response.defer(ephemeral=True)
+                await sendAvatar(interaction=interaction, userID=self.userID, channel=None, spoiler=False, source=None)
+            case "banner":
+                await interaction.response.defer(ephemeral=True)
+                await sendBanner(interaction=interaction, userID=self.userID, channel=None, spoiler=False, source=None)
+            case "hash":
+                await interaction.response.defer(ephemeral=True)
+                discUser = await interaction.client.fetch_user(int(self.userID))
+                returnedBytesAvatar = await downloadURL(discUser.avatar.url)
+                if discUser.banner is not None:
+                    returnedBytesBanner = await downloadURL(adjustPictureSizeDiscord(discUser.banner.url, 1024))
+                    await interaction.followup.send(f'Attached Hash for {self.userID}\nAvatar: `{getHashOfBytes(returnedBytesAvatar.content)}`\nBanner: `{getHashOfBytes(returnedBytesBanner.content)}`', ephemeral=True)
+                else:
+                    await interaction.followup.send(f'Attached Hash for {self.userID}\nAvatar: `{getHashOfBytes(returnedBytesAvatar.content)}`', ephemeral=True)
 
 
 async def setup(bot):
