@@ -109,7 +109,10 @@ class Reuploads(commands.Cog, name="Reuploads Commands"):
         if discord_user.avatar is None:
             await interaction.followup.send(f"User has no avatar for `{discord_user.id}`", ephemeral=True)
             return
-        await sendAvatar(interaction=interaction, userID=userid, spoiler=spoiler, channel=channel, source=source)
+        modifiedSource = await formatSources(interaction=interaction, source=source, userid=userid)
+        if modifiedSource is None:
+            return
+        await sendAvatar(interaction=interaction, userID=userid, spoiler=spoiler, channel=channel, source=modifiedSource)
 
     @reuploads.command(name='banner', description='Uploads Banners')
     @app_commands.describe(channel='The channel to Send it in.')
@@ -124,7 +127,10 @@ class Reuploads(commands.Cog, name="Reuploads Commands"):
         if discord_user.banner is None:
             await interaction.followup.send(f"User has no banner for `{discord_user.id}`", ephemeral=True)
             return
-        await sendBanner(interaction=interaction, userID=userid, spoiler=spoiler, channel=channel, source=source)
+        modifiedSource = await formatSources(interaction=interaction, source=source, userid=userid)
+        if modifiedSource is None:
+            return
+        await sendBanner(interaction=interaction, userID=userid, spoiler=spoiler, channel=channel, source=modifiedSource)
 
 
 class infoViewButtons(discord.ui.DynamicItem[discord.ui.Button], template=r'reuploads:info:\{(?P<info>[^}]*)\}'):

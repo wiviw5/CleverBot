@@ -41,19 +41,13 @@ async def sendFile(interaction: discord.Interaction, url, filename, channel, spo
 async def sendAvatar(interaction: discord.Interaction, userID, channel, spoiler, source):
     discUser = await interaction.client.fetch_user(int(userID))
     userAvatarURL = discUser.avatar.url
-    modifiedSource = getFormattedUsernames(discUser)
-    if source is not None:
-        modifiedSource = f"{modifiedSource}\n{source}"
-    await sendFile(interaction=interaction, url=userAvatarURL, filename=discUser.id, channel=channel, spoiler=spoiler, source=modifiedSource, sourcetype="Avatar")
+    await sendFile(interaction=interaction, url=userAvatarURL, filename=discUser.id, channel=channel, spoiler=spoiler, source=source, sourcetype="Avatar")
 
 
 async def sendBanner(interaction: discord.Interaction, userID, channel, spoiler, source):
     discUser = await interaction.client.fetch_user(int(userID))
     userBannerURL = adjustPictureSizeDiscord(discUser.banner.url, 1024)
-    modifiedSource = getFormattedUsernames(discUser)
-    if source is not None:
-        modifiedSource = f"{modifiedSource}\n{source}"
-    await sendFile(interaction=interaction, url=userBannerURL, filename=discUser.id, channel=channel, spoiler=spoiler, source=modifiedSource, sourcetype="Banner")
+    await sendFile(interaction=interaction, url=userBannerURL, filename=discUser.id, channel=channel, spoiler=spoiler, source=source, sourcetype="Banner")
 
 
 def getFormattedUsernames(discord_user: discord.User) -> str:
@@ -103,7 +97,7 @@ async def formatSources(interaction: discord.Interaction, filename: str = None, 
     revisedList = list(filter(lambda item: item is not None, formattedList))
 
     # Finally we join the list together, if the list is empty, it just returns nothing, (but not none!)
-    return " | ".join(revisedList)
+    return " | ".join(revisedList).replace("\\n", chr(10))
 
 
 def getDefaultChannel(interaction: discord.Interaction):
