@@ -43,7 +43,7 @@ async def sendAvatar(interaction: discord.Interaction, userID, channel, spoiler,
     userAvatarURL = discUser.avatar.url
     modifiedSource = getFormattedUsernames(discUser)
     if source is not None:
-        modifiedSource = f"{modifiedSource}\n`{source}`"
+        modifiedSource = f"{modifiedSource}\n{source}"
     await sendFile(interaction=interaction, url=userAvatarURL, filename=discUser.id, channel=channel, spoiler=spoiler, source=modifiedSource, sourcetype="Avatar")
 
 
@@ -52,7 +52,7 @@ async def sendBanner(interaction: discord.Interaction, userID, channel, spoiler,
     userBannerURL = adjustPictureSizeDiscord(discUser.banner.url, 1024)
     modifiedSource = getFormattedUsernames(discUser)
     if source is not None:
-        modifiedSource = f"{modifiedSource}\n`{source}`"
+        modifiedSource = f"{modifiedSource}\n{source}"
     await sendFile(interaction=interaction, url=userBannerURL, filename=discUser.id, channel=channel, spoiler=spoiler, source=modifiedSource, sourcetype="Banner")
 
 
