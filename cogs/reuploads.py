@@ -168,13 +168,16 @@ class infoViewButtons(discord.ui.DynamicItem[discord.ui.Button], template=r'reup
         return cls(userID=int(information[0]), buttonType=information[1])
 
     async def callback(self, interaction: discord.Interaction) -> None:
+        modifiedSource = await formatSources(interaction=interaction, source=None, userid=str(self.userID))
+        if modifiedSource is None:
+            return
         match self.buttonType:
             case "avatar":
                 await interaction.response.defer(ephemeral=True)
-                await sendAvatar(interaction=interaction, userID=self.userID, channel=None, spoiler=False, source=None)
+                await sendAvatar(interaction=interaction, userID=self.userID, channel=None, spoiler=False, source=modifiedSource)
             case "banner":
                 await interaction.response.defer(ephemeral=True)
-                await sendBanner(interaction=interaction, userID=self.userID, channel=None, spoiler=False, source=None)
+                await sendBanner(interaction=interaction, userID=self.userID, channel=None, spoiler=False, source=modifiedSource)
             case "hash":
                 await interaction.response.defer(ephemeral=True)
                 discUser = await interaction.client.fetch_user(int(self.userID))
