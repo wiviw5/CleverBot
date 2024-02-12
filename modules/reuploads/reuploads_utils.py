@@ -30,6 +30,10 @@ async def sendFile(interaction: discord.Interaction, url, filename, channel, spo
     fileToSend = discord.File(io.BytesIO(returnedBytes.content), filename=finalFileName)
     if channel is None:
         channel = getDefaultChannel(interaction=interaction)
+    # We Check if the URL is one of discord's links, and remove the extra bits before sending it out to the user.
+    if "https://cdn.discordapp.com/attachments/" in url:
+        url = url.split("?ex=")[0]
+
     if source != "":
         await channel.send(f"{source}\nOrigin URL: `{url}`\nHash: `{hashOfBytes}` Size: `{getFileSize(returnedBytes.content)}`", file=fileToSend)
         await interaction.followup.send(f"Successfully sent file!\n\nType: `{sourcetype}`\nSource: {source}", ephemeral=True)
