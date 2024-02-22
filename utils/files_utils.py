@@ -67,7 +67,7 @@ def getHashOfBytes(incomingBytes):
     return h.hexdigest()
 
 
-async def downloadURL(url):
+async def downloadURL(url) -> httpx.Response:
     async with httpx.AsyncClient() as client:
         r = await client.get(url)
         return r
