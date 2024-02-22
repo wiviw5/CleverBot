@@ -31,7 +31,7 @@ async def sendFile(interaction: discord.Interaction, url, filename, channel, spo
     if channel is None:
         channel = getDefaultChannel(interaction=interaction)
     # We Check if the URL is one of discord's links, and remove the extra bits before sending it out to the user.
-    if "https://cdn.discordapp.com/attachments/" in url:
+    if "https://cdn.discordapp.com/attachments/" in url or "https://cdn.discordapp.com/ephemeral-attachments/":
         url = url.split("?ex=")[0]
 
     if source != "":
