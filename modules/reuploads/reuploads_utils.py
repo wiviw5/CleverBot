@@ -60,9 +60,9 @@ def getFormattedUsernames(discord_user: discord.User) -> str:
         return f"`{discord_user.name}#{discord_user.discriminator}` | {discord_user.mention} | `{discord_user.id}`"
     # If the global name and the name are the same, global is "none" and shows up as None in the final mesage, this just removes that.
     if discord_user.global_name is None:
-        return f"`{discord_user.name}` | {discord_user.mention} | `{discord_user.id}`"
+        return f"`{discord_user.name.replace('`', '')}` | {discord_user.mention} | `{discord_user.id}`"
     # Finally, returning a properly formatted string at the end here.
-    return f"`{discord_user.name}` | `{discord_user.global_name}` | {discord_user.mention} | `{discord_user.id}`"
+    return f"`{discord_user.name.replace('`', '')}` | `{discord_user.global_name.replace('`', '')}` | {discord_user.mention} | `{discord_user.id}`"
 
 
 def adjustPictureSizeDiscord(url, requestedSize):
