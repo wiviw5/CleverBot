@@ -18,7 +18,7 @@ from discord.ext import commands
 from modules.reuploads.reuploads_config import setupReuploadsConfig
 from utils.bot_config import getMainGuildID
 from utils.files_utils import getHashOfBytes, downloadURL
-from modules.reuploads.reuploads_utils import getFormattedUsernames, adjustPictureSizeDiscord, sendAvatar, sendBanner, sendFile, formatSources
+from modules.reuploads.reuploads_utils import getFormattedUsernames, adjustPictureSizeDiscord, sendAvatar, sendBanner, sendFile, formatSources, handleTwitter
 from utils.utils import fetchUserFromID
 
 
@@ -131,6 +131,29 @@ class Reuploads(commands.Cog, name="Reuploads Commands"):
         if modifiedSource is None:
             return
         await sendBanner(interaction=interaction, userID=userid, spoiler=spoiler, channel=channel, source=modifiedSource)
+
+    @reuploads.command(name='website', description='Website Specific Uploaders')
+    @app_commands.describe(url='Url of the Image')
+    @app_commands.describe(channel='The channel to Send it in.')
+    @app_commands.describe(filename='Name of the File')
+    @app_commands.describe(spoiler='Whether or not the image should be hidden')
+    @app_commands.describe(source='Sources which may include any text')
+    @app_commands.describe(user_source='ID of a User, includes a mention, ID, username, and global name.')
+    async def websiteUploader(self, interaction: discord.Interaction, url: str, filename: str = None, channel: discord.TextChannel = None, spoiler: bool = False, source: str = None, user_source: str = None):
+        await interaction.response.defer(ephemeral=True)
+
+        # Implementations of Specific Websites.
+        if "https://twitter.com/" in url or "https://fxtwitter.com/" in url or "https://x.com/" in url or "https://fixupx.com/" in url:
+            await handleTwitter(interaction=interaction, original_url=url, user_source=user_source)
+            return
+        else:
+            await interaction.followup.send(f"Invalid website, or invalid website url.", ephemeral=True)
+            return
+
+        modifiedSource = await formatSources(interaction=interaction, filename=filename, source=source, userid=user_source)
+        if modifiedSource is None:
+            return
+        await sendFile(interaction=interaction, url=url, filename=filename, spoiler=spoiler, channel=channel, source=modifiedSource, sourcetype="Website Uploader")
 
 
 class infoViewButtons(discord.ui.DynamicItem[discord.ui.Button], template=r'reuploads:info:\{(?P<info>[^}]*)\}'):
