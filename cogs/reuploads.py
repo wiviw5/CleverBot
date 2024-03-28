@@ -23,7 +23,7 @@ from utils.utils import fetchUserFromID
 
 
 class Reuploads(commands.Cog, name="Reuploads Commands"):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
     reuploads = app_commands.Group(name="reuploads", description="All reuploads related commands", guild_ids=[getMainGuildID()])

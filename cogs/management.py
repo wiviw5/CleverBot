@@ -21,7 +21,7 @@ class Management(commands.Cog, name="Command management"):
             await interaction.response.send_message(f"This command is not for public use!", ephemeral=True, delete_after=5)
             return
         await interaction.response.defer(ephemeral=True)
-        # await interaction.client.tree.sync() # Global sync.
+        # await interaction.client.tree.sync() # Global sync. //TODO Add global sync option.
         await interaction.client.tree.sync(guild=discord.Object(getMainGuildID()))
         await interaction.followup.send(f"Successfully done!")
         print(f"User [{interaction.user.id}] Synced commands at: {getTime()}")
