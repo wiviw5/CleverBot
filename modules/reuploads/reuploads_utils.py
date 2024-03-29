@@ -124,6 +124,7 @@ async def handleTwitter(interaction: discord.Interaction, original_url: str, use
     # https://x.com/minikloon
     # https://fxtwitter.com/minikloon
     # https://fixupx.com/minikloon
+    # Example Tweet: https://twitter.com/Minikloon/status/1747663323716345881
     # Example API: https://api.fxtwitter.com/minikloon
     # Example API 2: https://api.fxtwitter.com/Minikloon/status/1747663323716345881
     # Example PFP 1: https://pbs.twimg.com/profile_images/626172982847774720/MbXX-auJ.png (Original Quality PFP)
@@ -138,6 +139,14 @@ async def handleTwitter(interaction: discord.Interaction, original_url: str, use
         mediaList: list = jsonOutput.get('tweet').get('media').get('all')
         authorName: str = jsonOutput.get('tweet').get('author').get("screen_name")
         authorLink: str = jsonOutput.get('tweet').get('author').get("url")
+
+        if len(mediaList) == 1:
+            mediaUrl = mediaList[0].get('url')
+            modifiedSource = await formatSources(interaction=interaction,source=f"`{cleaned_url}` | `{authorLink}` | `{authorName}`", userid=user_source)
+            if modifiedSource is None:
+                return
+            await sendFile(interaction=interaction, url=mediaUrl, filename=authorName, spoiler=False, channel=None, source=modifiedSource, sourcetype="Twitter Website Uploader")
+            return
 
         linkList: list = []
         for media in mediaList:

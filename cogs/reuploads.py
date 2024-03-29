@@ -144,16 +144,12 @@ class Reuploads(commands.Cog, name="Reuploads Commands"):
 
         # Implementations of Specific Websites.
         if "https://twitter.com/" in url or "https://fxtwitter.com/" in url or "https://x.com/" in url or "https://fixupx.com/" in url:
+            # TODO Implement an "upload all" function.
             await handleTwitter(interaction=interaction, original_url=url, user_source=user_source)
             return
         else:
             await interaction.followup.send(f"Invalid website, or invalid website url.", ephemeral=True)
             return
-
-        modifiedSource = await formatSources(interaction=interaction, filename=filename, source=source, userid=user_source)
-        if modifiedSource is None:
-            return
-        await sendFile(interaction=interaction, url=url, filename=filename, spoiler=spoiler, channel=channel, source=modifiedSource, sourcetype="Website Uploader")
 
 
 class infoViewButtons(discord.ui.DynamicItem[discord.ui.Button], template=r'reuploads:info:\{(?P<info>[^}]*)\}'):
