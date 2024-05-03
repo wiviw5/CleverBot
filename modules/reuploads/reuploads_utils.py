@@ -13,6 +13,7 @@ import io
 
 import discord
 import httpx
+import json
 
 from modules.reuploads.reuploads_config import getDefaultReuploadChannel
 from utils.files_utils import getHashOfBytes, getFileSize, downloadURL, checkFileSize, getFileExtensionType
@@ -142,7 +143,7 @@ async def handleTwitter(interaction: discord.Interaction, original_url: str, use
 
         if len(mediaList) == 1:
             mediaUrl = mediaList[0].get('url')
-            modifiedSource = await formatSources(interaction=interaction,source=f"`{cleaned_url}` | `{authorLink}` | `{authorName}`", userid=user_source)
+            modifiedSource = await formatSources(interaction=interaction, source=f"`{cleaned_url}` | `{authorLink}` | `{authorName}`", userid=user_source)
             if modifiedSource is None:
                 return
             await sendFile(interaction=interaction, url=mediaUrl, filename=authorName, spoiler=False, channel=None, source=modifiedSource, sourcetype="Twitter Website Uploader")
@@ -186,6 +187,78 @@ async def handleTwitter(interaction: discord.Interaction, original_url: str, use
             uploadedString = "\nNo avatar or banner on user's profile."
 
         await interaction.followup.send(f"User URL: `{cleaned_url}`\nUsername: `{authorName}`{uploadedString}", ephemeral=True)
+
+
+async def handleYoutube(interaction: discord.Interaction, original_url: str, user_source: str):
+    rb: httpx.Response = await downloadURL(original_url)
+    content: bytes = rb.content
+
+    start = "var ytInitialData = "
+    end = "}}};</script>"
+
+    ytInitialData: str = content[content.find(start.encode()) + len(start):content.rfind(end.encode())].decode() + "}}}"
+
+    # print(f"Content: {ytInitialData}") # Debug
+
+    loadedJson: dict = json.loads(ytInitialData)
+
+    youtubeData: dict = handleYoutubeFormats(loadedJson=loadedJson)
+
+    if youtubeData is None:
+        await interaction.followup.send(f"Unknown type of youtube format received.\n\nNeeds further research.", ephemeral=True)
+        return
+
+    # print(f"Json Data: {json.dumps(loadedJson, indent=2)}") # Debug
+
+    username: str = youtubeData.get("username")
+    avatarURL: str = youtubeData.get("avatarURL")
+    bannerURL: str = youtubeData.get("bannerURL")
+
+    if user_source is None:
+        avatarUploadCommand: str = f"```/reuploads upload url: {avatarURL} source: `{original_url}` | `{username}` ```"
+        bannerUploadCommand: str = f"```/reuploads upload url: {bannerURL} source: `{original_url}` | `{username}` ```"
+    else:
+        avatarUploadCommand: str = f"```/reuploads upload url: {avatarURL} source: `{original_url}` | `{username}` user_source:{user_source} ```"
+        bannerUploadCommand: str = f"```/reuploads upload url: {bannerURL} source: `{original_url}` | `{username}` user_source:{user_source} ```"
+
+    if bannerURL is None:
+        await interaction.followup.send(f"Original URL: `{original_url}`\nUsername: `{username}`\nAvatar URL: `{avatarURL}`\n{avatarURL}\n{avatarUploadCommand}", ephemeral=True)
+    else:
+        await interaction.followup.send(f"Original URL: `{original_url}`\nUsername: `{username}`\nAvatar URL: `{avatarURL}`\n{avatarURL}\n{avatarUploadCommand}\nBanner URL: `{bannerURL}`\n{bannerURL}\n{bannerUploadCommand}", ephemeral=True)
+
+
+def handleYoutubeFormats(loadedJson: dict) -> [dict, None]:
+    # YouTube has sent me different formats, handling them in this nice block, so it doesn't become a mess.
+
+    # "Page Header Renderer"
+    if loadedJson.get("header").get("pageHeaderRenderer") is not None:
+        username: str = loadedJson.get("header").get("pageHeaderRenderer").get("pageTitle")
+        avatarURL: str = loadedJson.get("header").get("pageHeaderRenderer").get("content").get("pageHeaderViewModel").get("image").get("decoratedAvatarViewModel").get("avatar").get("avatarViewModel").get("image").get("sources")[-1].get("url")
+        try:
+            bannerURL = loadedJson.get("header").get("pageHeaderRenderer").get("content").get("pageHeaderViewModel").get("banner").get("imageBannerViewModel").get("image").get("sources")[-1].get("url")
+        except AttributeError:
+            bannerURL = None
+        return {"username": username, "avatarURL": formatYoutubeImageSize(avatarURL, "=s1024"), "bannerURL": formatYoutubeImageSize(bannerURL, "=w2120")}
+
+    # "c4 Tabbed Header Renderer"
+    if loadedJson.get("header").get("c4TabbedHeaderRenderer") is not None:
+        username: str = loadedJson.get("header").get("c4TabbedHeaderRenderer").get("title")
+        avatarURL: str = loadedJson.get("header").get("c4TabbedHeaderRenderer").get("avatar").get("thumbnails")[-1].get("url")
+        try:
+            bannerURL = loadedJson.get("header").get("c4TabbedHeaderRenderer").get("banner").get("thumbnails")[-1].get("url")
+        except AttributeError:
+            bannerURL = None
+        return {"username": username, "avatarURL": formatYoutubeImageSize(avatarURL, "=s1024"), "bannerURL": formatYoutubeImageSize(bannerURL, "=w2120")}
+
+    # This will act as a warning whenever neither apply.
+    return None
+
+
+def formatYoutubeImageSize(url: str, size: str) -> [str, None]:
+    if url is None:
+        return None
+    else:
+        return url.split("=")[0] + size
 
 
 def getDefaultChannel(interaction: discord.Interaction):

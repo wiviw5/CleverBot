@@ -18,7 +18,7 @@ from discord.ext import commands
 from modules.reuploads.reuploads_config import setupReuploadsConfig
 from utils.bot_config import getMainGuildID
 from utils.files_utils import getHashOfBytes, downloadURL
-from modules.reuploads.reuploads_utils import getFormattedUsernames, adjustPictureSizeDiscord, sendAvatar, sendBanner, sendFile, formatSources, handleTwitter
+from modules.reuploads.reuploads_utils import getFormattedUsernames, adjustPictureSizeDiscord, sendAvatar, sendBanner, sendFile, formatSources, handleTwitter, handleYoutube
 from utils.utils import fetchUserFromID
 
 
@@ -146,6 +146,9 @@ class Reuploads(commands.Cog, name="Reuploads Commands"):
         if "https://twitter.com/" in url or "https://fxtwitter.com/" in url or "https://x.com/" in url or "https://fixupx.com/" in url:
             # TODO Implement an "upload all" function.
             await handleTwitter(interaction=interaction, original_url=url, user_source=user_source)
+            return
+        if "https://www.youtube.com/" in url:
+            await handleYoutube(interaction=interaction, original_url=url, user_source=user_source)
             return
         else:
             await interaction.followup.send(f"Invalid website, or invalid website url.", ephemeral=True)
