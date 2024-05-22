@@ -168,7 +168,7 @@ async def getServerStatus(address: str, port: int, retry: int) -> [JavaStatusRes
             return getErrorType(1)
         retryServer = await JavaServer.async_lookup(address=address)
         return await getServerStatus(address=address, port=retryServer.address.port, retry=1)
-    except dns.resolver.LifetimeTimeout:
+    except [dns.resolver.LifetimeTimeout, IOError]:
         # This is state 2.
         if retry != 0:
             return getErrorType(2)
