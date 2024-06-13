@@ -35,6 +35,9 @@ async def sendFile(interaction: discord.Interaction, url, filename, channel, spo
     # We Check if the URL is one of discord's links, and remove the extra bits before sending it out to the user.
     if "https://cdn.discordapp.com/attachments/" in url or "https://cdn.discordapp.com/ephemeral-attachments/" in url:
         url = url.split("?ex=")[0]
+    # For DeviantArt urls, we take off the extra bits here as well.
+    if "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/" in url:
+        url = url.split('?token=')[0]
 
     if source != "":
         await channel.send(f"{source}\nOrigin URL: `{url}`\nHash: `{hashOfBytes}` Size: `{getFileSize(returnedBytes.content)}`", file=fileToSend)
@@ -259,6 +262,30 @@ def formatYoutubeImageSize(url: str, size: str) -> [str, None]:
         return None
     else:
         return url.split("=")[0] + size
+
+
+async def handleDeviantart(interaction: discord.Interaction, original_url: str, user_source: str):
+    # oembed info: https://www.deviantart.com/developers/oembed
+    rb: httpx.Response = await downloadURL(f"https://backend.deviantart.com/oembed?url={original_url}")
+    content: dict = rb.json()
+    # 404 not found is incase it's not a deviation URL
+    if rb.status_code == 404:
+        await interaction.followup.send(f"404, not a deviation URL.", ephemeral=True)
+        return
+
+    authorName = content.get("author_name")
+    authorLink = content.get("author_url")
+    deviationURL = content.get("url")
+    cleanedDeviationURL = content.get("url").split('?token=')[0]
+    title = content.get("title")
+
+    await interaction.followup.send(f"Original URL: `{original_url}`\nUsername: `{authorName}`\nTitle: `{title}`\nDeviation URL: `{cleanedDeviationURL}`", ephemeral=True)
+    # Send the file since we always only get one file at a time.
+    modifiedSource = await formatSources(interaction=interaction, source=f"`{original_url}` | `{authorLink}` | `{authorName}`", userid=user_source)
+    if modifiedSource is None:
+        return
+    await sendFile(interaction=interaction, url=deviationURL, filename=title, spoiler=False, channel=None, source=modifiedSource, sourcetype="DeviantArt Website Uploader")
+    return
 
 
 def getDefaultChannel(interaction: discord.Interaction):

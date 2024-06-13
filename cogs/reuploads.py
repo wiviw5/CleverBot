@@ -18,7 +18,7 @@ from discord.ext import commands
 from modules.reuploads.reuploads_config import setupReuploadsConfig
 from utils.bot_config import getMainGuildID
 from utils.files_utils import getHashOfBytes, downloadURL
-from modules.reuploads.reuploads_utils import getFormattedUsernames, adjustPictureSizeDiscord, sendAvatar, sendBanner, sendFile, formatSources, handleTwitter, handleYoutube
+from modules.reuploads.reuploads_utils import getFormattedUsernames, adjustPictureSizeDiscord, sendAvatar, sendBanner, sendFile, formatSources, handleTwitter, handleYoutube, handleDeviantart
 from utils.utils import fetchUserFromID
 
 
@@ -149,6 +149,9 @@ class Reuploads(commands.Cog, name="Reuploads Commands"):
             return
         if "https://www.youtube.com/" in url:
             await handleYoutube(interaction=interaction, original_url=url, user_source=user_source)
+            return
+        if "https://www.deviantart.com/" in url:
+            await handleDeviantart(interaction=interaction, original_url=url, user_source=user_source)
             return
         else:
             await interaction.followup.send(f"Invalid website, or invalid website url.", ephemeral=True)
